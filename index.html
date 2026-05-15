@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فحص الخدمة | مع الوطني انت مدلل</title><style>
+
+:root{
+    --bg:#0b1220;
+    --card:#121b2e;
+    --primary:#4da3ff;
+    --danger:#ff4d4d;
+    --success:#2ecc71;
+    --warning:#ffb020;
+    --text:#e6e6e6;
+}
+
+body{
+    margin:0;
+    font-family: Arial;
+    background: radial-gradient(circle at top, #14213d, var(--bg));
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:840px;
+    background:rgba(18,27,46,0.95);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    padding:28px;
+    backdrop-filter: blur(10px);
+}
+
+.header{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.header h1{
+    margin:0;
+    font-size:22px;
+}
+
+.header p{
+    margin:5px 0 0;
+    font-size:13px;
+    opacity:0.7;
+}
+
+.step{display:none;}
+.step.active{display:block;}
+
+.card{
+    background:#0f1729;
+    padding:15px;
+    border-radius:14px;
+    margin-top:10px;
+    border:1px solid rgba(255,255,255,0.05);
+    text-align:center;
+    font-size:16px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:12px;
+    font-size:15px;
+    cursor:pointer;
+}
+
+.primary{background:var(--primary);color:#000;font-weight:bold;}
+.success{background:var(--success);}
+.danger{background:var(--danger);}
+.warning{background:var(--warning);color:#000;}
+
+.big-btn{
+    font-size:22px;
+    padding:24px;
+}
+
+.center-text{
+    text-align:center;
+    font-size:16px;
+    margin-top:10px;
+}
+
+.mini-btn{
+    font-size:14px;
+    padding:12px;
+    width:60%;
+    margin:12px auto;
+    display:block;
+    font-weight:bold;
+}
+
+.flex{
+    display:flex;
+    gap:10px;
+}
+
+.flex button{width:50%;}
+
+.timer{
+    font-size:18px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+</style></head>
+<body><div class="container"><div class="header">
+    <h1>ويه الوطني انت مدلل</h1>
+    <p>فحص الخدمة</p>
+</div><div id="step1" class="step active">
+    <button class="primary big-btn" onclick="startTest()">اطفاء الراوتر والجهاز ONU</button>
+    <div id="msg1" class="center-text" style="display:none;">انته قريب عله الاجهزة استاذ</div>
+    <button id="confirmBtn" class="warning mini-btn" style="display:none;">اضغط هنا</button>
+</div><div id="step2" class="step">
+    <div class="card center-text">
+        اترك الاجهزة مطفئة استاذ
+        <div id="offTimer" class="timer">10</div>
+    </div>
+</div><div id="step3" class="step">
+    <div class="card center-text">
+        شغل الاجهزة استاذ
+        <div id="onTimer" class="timer">12</div>
+    </div>
+</div><div id="step4" class="step">
+    <div class="card center-text">هل عندك حاسبة لابتوب استاذ؟</div>
+    <div class="flex">
+        <button class="success" onclick="finish()">نعم</button>
+        <button class="danger" onclick="finish()">لا</button>
+    </div>
+</div></div><script>
+
+let audioCtx;
+
+function initAudio(){
+    if(!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioCtx.state === "suspended"){
+        audioCtx.resume();
+    }
+}
+
+function beep(){
+    initAudio();
+
+    let o = audioCtx.createOscillator();
+    let g = audioCtx.createGain();
+
+    o.connect(g);
+    g.connect(audioCtx.destination);
+
+    o.frequency.value = 800;
+    o.type = "sine";
+
+    o.start();
+
+    g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.25);
+
+    setTimeout(()=>o.stop(),250);
+}
+
+function showStep(n){
+    for(let i=1;i<=4;i++){
+        document.getElementById("step"+i).classList.remove("active");
+    }
+    document.getElementById("step"+n).classList.add("active");
+}
+
+function startTest(){
+    document.getElementById("msg1").style.display="block";
+    document.getElementById("confirmBtn").style.display="block";
+}
+
+const confirmBtn = document.getElementById("confirmBtn");
+
+let t1, t2;
+
+confirmBtn.onclick=function(){
+
+    beep(); // صوت أولي
+
+    let time=10;
+    showStep(2);
+
+    let off=document.getElementById("offTimer");
+    off.innerHTML=time;
+
+    t1=setInterval(()=>{
+        time--;
+        off.innerHTML=time;
+
+        if(time<=0){
+            clearInterval(t1);
+
+            // 🔊 رجعنا الصوت الثاني (بين الإطفاء والتشغيل)
+            beep();
+
+            startSecond();
+        }
+    },1000);
+};
+
+function startSecond(){
+
+    let time=12;
+    showStep(3);
+
+    let on=document.getElementById("onTimer");
+    on.innerHTML=time;
+
+    t2=setInterval(()=>{
+        time--;
+        on.innerHTML=time;
+
+        if(time<=0){
+            clearInterval(t2);
+            showStep(4);
+        }
+    },1000);
+}
+
+function finish(){
+    // ❌ تم حذف الصوت بعد الفحص حسب طلبك
+    alert("تم إنهاء الفحص بنجاح");
+    location.reload();
+}
+
+</script></body>
+</html>
